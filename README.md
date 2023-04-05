@@ -12,3 +12,6 @@ Range object (Excel):
 	https://learn.microsoft.com/en-us/office/vba/api/excel.range(object)
 
 
+[3]
+Using the For Each Loop:
+	https://excelhelphq.com/how-to-loop-through-worksheets-in-a-workbook-in-excel-vba/
