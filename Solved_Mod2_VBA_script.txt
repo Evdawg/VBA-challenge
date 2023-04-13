@@ -1,0 +1,339 @@
+' Grader note: plz run macros from top to bottom per this .txt
+
+
+    ' All summary calculation rows need to be unique per single ticker, so need to group calculations by ticker
+
+' Framework for looping through worksheets in For loop:
+Sub loop_worksheets_for_tickers():
+Dim i As Integer
+Dim ws_num As Long
+Dim starting_ws As Worksheet
+
+'Optimize Code
+  Application.ScreenUpdating = False
+
+'Excel workbook, the source and target worksheets, and the source and target ranges
+Dim wbBook As Workbook
+Dim wsSource As Worksheet
+Dim wsTarget As Worksheet
+Dim rnSource As Range
+Dim rnTarget As Range
+Dim rnUnique As Range
+
+' Remember which worksheet is active in beginning
+Set starting_ws = ActiveSheet
+
+ws_num = ThisWorkbook.Worksheets.Count
+
+For i = 1 To ws_num
+    ThisWorkbook.Worksheets(i).Activate
+    
+    ' Functional code for unique tickers in this following block:
+'==================================================================================
+    'Variant to hold the unique data
+    Dim vaUnique As Variant
+    'Number of unique values in the data
+    Dim lnCount As Long
+    
+    'Initialize the Excel objects
+    Set wbBook = ThisWorkbook
+    With wbBook
+        Set wsSource = .Worksheets(i)
+        Set wsTarget = .Worksheets(i)
+    End With
+    
+    'On the source worksheet, set the range to the data stored in column A
+    With wsSource
+        Set rnSource = .Range(.Range("A1"), .Range("A" & Rows.Count).End(xlDown))
+    End With
+    
+    'On the target worksheet, set the range as column A
+    Set rnTarget = wsTarget.Range("I1")
+    
+    'Use AdvancedFilter to copy the data from the source to the target,
+    'while filtering for duplicate values.
+    rnSource.AdvancedFilter Action:=xlFilterCopy, _
+                            CopyToRange:=rnTarget, _
+                            Unique:=True
+                            
+    'On the target worksheet, set the unique range on Column I, include the first cell
+' TODO: Overwrite header titles after all calculations completed
+    With wsTarget
+        Set rnUnique = Range("I:I")
+'        .Range(.Range("I2"), .Range("I100").End(xlUp))
+    End With
+    
+    'Assign all the values of the Unique range into the Unique variant
+    vaUnique = rnUnique.Value
+
+'==================================================================================
+    'End functional code for unique tickers block
+    
+' moves to next worksheet and executes code within block
+Next
+
+'returns to originally active worksheet
+starting_ws.Activate
+
+End Sub
+
+' Framework for looping through worksheets in For loop:
+Sub ticker_yearly_volume():
+Dim i As Integer
+Dim ws_num As Long
+Dim starting_ws As Worksheet
+
+'Optimize Code (we're doing it! we're optimizing!) Less updating cell visuals, more calculating:
+  Application.ScreenUpdating = False
+
+'Excel workbook, the source and target worksheets, and the source and target ranges
+Dim wbBook As Workbook
+Dim wsSource As Worksheet
+Dim wsTarget As Worksheet
+Dim rnSource As Range
+Dim rnTarget As Range
+Dim rnUnique As Range
+
+' Remember which worksheet is active in beginning
+Set starting_ws = ActiveSheet
+
+ws_num = ThisWorkbook.Worksheets.Count
+
+For i = 1 To ws_num
+    ThisWorkbook.Worksheets(i).Activate
+
+' start code block for summing yearly volume by same sorted ticker value
+'==================================================================================
+'' This code block is used to sum Values in reference to a static value (?)
+'' Source code from: edX Boot Camps LLC. Class_3_Activities credit_charges.xlsm
+
+
+'name variable for holding the ticker name (not needed here...)
+Dim ticker As String
+Dim total_volume As Double
+
+total_volume = 0
+
+' summary table that keeps  location for each card
+Dim summary_table_row As Integer
+
+summary_table_row = 2
+
+For j = 2 To Range("A" & Rows.Count).End(xlUp).Row
+    If Cells(j + 1, 1).Value <> Cells(j, 1).Value Then
+        ticker = Cells(j, 1).Value
+        total_volume = total_volume + Cells(j, 7).Value
+        'Range("I" & summary_table_row).Value = ticker
+        Range("L" & summary_table_row).Value = total_volume
+        summary_table_row = summary_table_row + 1
+
+        total_volume = 0
+    Else
+        total_volume = total_volume + CDbl(Cells(j, 7).Value)
+
+    End If
+
+Next j
+
+'==================================================================================
+    'End functional code for unique tickers block
+    
+
+' moves to next worksheet and executes code within block
+Next
+
+'returns to originally active worksheet
+starting_ws.Activate
+
+End Sub
+
+'==================================================================================
+    ' End code block for summing volume by same sorted ticker value
+
+
+
+' Framework for looping through worksheets in For loop:
+Sub yearly_change():
+Dim i As Integer
+Dim ws_num As Long
+Dim starting_ws As Worksheet
+
+'Optimize Code
+  Application.ScreenUpdating = False
+
+'Excel workbook, the source and target worksheets, and the source and target ranges
+Dim wbBook As Workbook
+Dim wsSource As Worksheet
+Dim wsTarget As Worksheet
+Dim rnSource As Range
+Dim rnTarget As Range
+Dim rnUnique As Range
+
+' Remember which worksheet is active in beginning
+Set starting_ws = ActiveSheet
+
+ws_num = ThisWorkbook.Worksheets.Count
+
+For i = 1 To ws_num
+    ThisWorkbook.Worksheets(i).Activate
+
+' start code block for Yearly change by ticker
+'==================================================================================
+' 4/10 8:30AM note: The close and open price values per ticker are off... Need to figure this out:
+
+Dim ticker As String
+Dim open_date, close_date As String
+Dim open_price, close_price As Double
+Dim lRow, lColumn As Long
+
+Dim output_row As Integer
+
+open_date = CStr(Cells(2, 2).Value)
+'MsgBox ("Open date is: " & open_date)
+
+'lRow = Range("B1").End(xlDown).Row
+lRow = Range("B1").End(xlDown).Row
+close_date = Cells(lRow, 2)
+'MsgBox ("Close date is: " & close_date)
+output_row = 2
+
+
+For R = 1 To Range("B" & Rows.Count).End(xlUp).Row
+    If CStr(Cells(R, 2).Value) = open_date Then
+    open_price = Cells(R, 3).Value
+    'MsgBox ("open_price is " & open_price & " pointing to r = " & r)
+    
+    ElseIf CStr(Cells(R, 2).Value) = close_date Then
+        close_price = Cells(R, 6).Value
+        'Cells(r, 10).Value = close_price - open_price
+        Range("J" & output_row).Value = close_price - open_price
+        If Range("J" & output_row).Value < 0 Then
+            Range("J" & output_row).Interior.ColorIndex = 3
+        
+        ElseIf Range("J" & output_row).Value > 0 Then
+            Range("J" & output_row).Interior.ColorIndex = 4
+            End If
+            
+        Range("K" & output_row).Value = FormatPercent((close_price - open_price) / open_price)
+        output_row = output_row + 1
+        open_price = Empty
+        close_price = Empty
+            
+    End If
+
+Next R
+    
+
+'==================================================================================
+    ' End code block for Yearly change by ticker
+
+
+' moves to next worksheet and executes code within block
+Next
+
+'returns to originally active worksheet
+starting_ws.Activate
+
+End Sub
+
+
+
+
+' start code block for Max value across multiple sheets:
+' note: this will need to output the Max, Min, and greatest total volume for each sheet
+' each sheet is a different year in the homework .xlsx file
+'==================================================================================
+' #TODO : Loop through each sheet and get max/min values and corresponding ticker string
+        ' start with this code block, then loop through sheets
+'Option Explicit
+
+Sub summary_numbers():
+
+Dim ws As Worksheet
+Dim max_percent, max_decrease, ws_num As Long
+Dim max_vol As Double
+Dim i As Integer
+
+ws_num = ActiveWorkbook.Worksheets.Count
+
+For i = 1 To ws_num
+    Set ws = ThisWorkbook.Sheets(i)
+
+' TODO: populate ticker using offset method. Then write all added header names in this loop
+    max_percent = ws.Application.WorksheetFunction.Max(ws.Range("K:K"))
+    max_decrease = ws.Application.WorksheetFunction.Min(ws.Range("K:K"))
+    max_vol = ws.Application.WorksheetFunction.Max(ws.Range("L:L"))
+    
+       'Declare variables for the match function:
+    Dim var, var2, var3 As Variant, iSheet As Integer, iRow As Long, iRowL As Long, bln As Boolean
+       
+       'Set up the count as the number of filled rows in the first column of Sheet1.
+       iRowL = Cells(Rows.Count, 11).End(xlUp).Row
+       
+       'Cycle through all the cells in that column:
+       For iRow = 1 To iRowL
+          'For every cell that is not empty, search through the column in each worksheet in the
+          'workbook for a value that matches that cell value.
+
+          'If Not IsEmpty(Cells(iRow, 11)) Then
+             'For iSheet = ActiveSheet.Index + 1 To Worksheets.Count
+            var = Application.Match(max_percent, ws.Range("K:K"), 0)
+            var2 = Application.Match(max_decrease, ws.Range("K:K"), 0)
+            var3 = Application.Match(max_vol, ws.Range("L:L"), 0)
+            'MsgBox (var)
+            ws.Range("P2") = ws.Cells(var, 9).Value
+            ws.Range("P3") = ws.Cells(var2, 9).Value
+            ws.Range("P4") = ws.Cells(var3, 9).Value
+            
+                
+                'If you find a matching value, indicate success by setting bln to true and exit the loop;
+                'otherwise, continue searching until you reach the end of the workbook.
+                If Not IsError(var) Then
+                   Exit For
+                End If
+                
+             'Next iSheet
+          'End If
+          
+          'If you don't find a matching value, don't bold the value in the original list;
+          'if you do find a value, bold it.
+'          If bln = False Then
+'             Cells(iRow, 11).Font.Bold = False
+'             Else
+'             Cells(iRow, 11).Font.Bold = True
+'          End If
+       Next iRow
+'--------------------------------------------------------------------------------
+
+
+
+'--------------------------------------------------------------------------------
+    
+    ws.Range("Q2") = FormatPercent(max_percent)
+    ws.Range("O2") = "Greatest % Increase"
+    'ws.Range("P2") = Cells(var, 9).Value
+    
+    
+    ws.Range("Q3") = FormatPercent(max_decrease)
+    ws.Range("O3") = "Greatest % Decrease"
+    'ws.Range("P3") = Cells(var2, 9).Value
+    
+    ws.Range("Q4") = max_vol
+    ws.Range("O4") = "Greatest Total Volume"
+    
+    ws.Range("J1") = "Yearly Change"
+    ws.Range("K1") = "Percent Change"
+    ws.Range("L1") = "Total Stock Volume"
+    ws.Range("P1") = "Ticker"
+    ws.Range("Q1") = "Value"
+    
+    
+
+'==================================================================================
+' end code block for Max value across multiple sheets
+
+
+Next i
+End Sub
+
+
